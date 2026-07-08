@@ -1,6 +1,6 @@
 services:
   prusaslicer:
-    image: lscr.io/linuxserver/orcaslicer:latest
+    image: prusaslicer:latest
     container_name: prusaslicer
     environment:
       - PUID=1000
