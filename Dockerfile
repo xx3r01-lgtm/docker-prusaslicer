@@ -5,12 +5,12 @@ FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie
 # set version label
 ARG BUILD_DATE
 ARG VERSION
-ARG ORCASLICER_VERSION
+ARG PRUSASLICER_VERSION
 LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="thelamer"
 
 # title
-ENV TITLE=OrcaSlicer \
+ENV TITLE=PrusaSlicer \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
     PIXELFLUX_WAYLAND=true
 
@@ -18,7 +18,7 @@ RUN \
   echo "**** add icon ****" && \
   curl -o \
     /usr/share/selkies/www/icon.png \
-    https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/orcaslicer-logo.png && \
+    https://raw.githubusercontent.com/prusa3d/PrusaSlicer/refs/heads/master/resources/icons/PrusaSlicer.png && \
   echo "**** add mozilla apt repo ****" && \
   install -d -m 0755 /etc/apt/keyrings && \
   curl -o \
@@ -68,7 +68,7 @@ RUN \
   /tmp/prusaslicer.AppImage --appimage-extract && \
   # Cleanup
   echo "**** cleanup ****" && \
-  rm /tmp/prusaslicer.AppImage \
+  rm /tmp/prusaslicer.AppImage && \
   apt-get autoclean && \
   rm -rf \
     /config/.cache \
