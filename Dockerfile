@@ -51,24 +51,24 @@ RUN \
     libmspack0 \
     libwebkit2gtk-4.1-0 \
     libwx-perl && \
-  echo "**** install orcaslicer from appimage ****" && \
-  if [ -z ${ORCASLICER_VERSION+x} ]; then \
-    ORCASLICER_VERSION=$(curl -sX GET "https://api.github.com/repos/OrcaSlicer/OrcaSlicer/releases/latest" \
+  echo "**** install prusaslicer ****" && \
+  mkdir -p /app/prusaslicer && \
+  if [ -z ${PRUSASLICER_RELEASE+x} ]; then \
+    PRUSASLICER_RELEASE=$(curl -sX GET "https://api.github.com/repos/gneiss15/PrusaSlicer.AppImage/releases/latest" \
     | awk '/tag_name/{print $4;exit}' FS='[""]'); \
   fi && \
-  RELEASE_URL=$(curl -sX GET "https://api.github.com/repos/OrcaSlicer/OrcaSlicer/releases/latest"     | awk '/url/{print $4;exit}' FS='[""]') && \
-  DOWNLOAD_URL=$(curl -sX GET "${RELEASE_URL}" | awk '/browser_download_url.*Ubuntu2404_V/{print $4;exit}' FS='[""]') && \
-  cd /tmp && \
+  # Fetch the specific browser download URL for the AppImage
+  APPIMAGE_URL=$(curl -sX GET "https://api.github.com/repos/gneiss15/PrusaSlicer.AppImage/releases/latest" \
+    | grep "browser_download_url.*AppImage" | cut -d '"' -f 4 | head -n 1) && \
   curl -o \
-    /tmp/orca.app -L \
-    "${DOWNLOAD_URL}" && \
-  chmod +x /tmp/orca.app && \
-  ./orca.app --appimage-extract && \
-  mv squashfs-root /opt/orcaslicer && \
-  localedef -i en_GB -f UTF-8 en_GB.UTF-8 && \
-  chmod +x /opt/orcaslicer/libexec/orca-slicer-env && \
-  printf "Linuxserver.io version: ${VERSION}\nBuild-date: ${BUILD_DATE}" > /build_version && \
+    /tmp/prusaslicer.AppImage -L \
+    "${APPIMAGE_URL}" && \
+  chmod +x /tmp/prusaslicer.AppImage && \
+  cd /app/prusaslicer && \
+  /tmp/prusaslicer.AppImage --appimage-extract && \
+  # Cleanup
   echo "**** cleanup ****" && \
+  rm /tmp/prusaslicer.AppImage \
   apt-get autoclean && \
   rm -rf \
     /config/.cache \
