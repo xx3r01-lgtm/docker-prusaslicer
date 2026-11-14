@@ -1,1 +1,1 @@
-/opt/orcaslicer/AppRun
+env GDK_BACKEND=x11 /opt/prusaslicer/AppRun
