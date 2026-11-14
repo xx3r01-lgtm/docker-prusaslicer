@@ -17,8 +17,9 @@ ENV TITLE=PrusaSlicer \
 RUN \
   echo "**** add icon ****" && \
   curl -o \
-    /usr/share/selkies/www/icon.png \
-    https://raw.githubusercontent.com/prusa3d/PrusaSlicer/refs/heads/master/resources/icons/PrusaSlicer.png && \
+    /usr/share/selkies/www/icon.png -L \
+    https://raw.githubusercontent.com/prusa3d/PrusaSlicer/refs/heads/master/resources/icons/PrusaSlicer_128px.png && \
+  cp /usr/share/selkies/www/icon.png /usr/share/pixmaps/prusaslicer.png && \
   echo "**** add mozilla apt repo ****" && \
   install -d -m 0755 /etc/apt/keyrings && \
   curl -o \
@@ -51,24 +52,23 @@ RUN \
     libmspack0 \
     libwebkit2gtk-4.1-0 \
     libwx-perl && \
-  echo "**** install prusaslicer ****" && \
-  mkdir -p /app/prusaslicer && \
-  if [ -z ${PRUSASLICER_RELEASE+x} ]; then \
-    PRUSASLICER_RELEASE=$(curl -sX GET "https://api.github.com/repos/gneiss15/PrusaSlicer.AppImage/releases/latest" \
-    | awk '/tag_name/{print $4;exit}' FS='[""]'); \
+  echo "**** install prusaslicer from appimage ****" && \
+  RELEASE_JSON=$(curl -sX GET "https://api.github.com/repos/gneiss15/PrusaSlicer.AppImage/releases/latest") && \
+  if [ -z ${PRUSASLICER_VERSION+x} ]; then \
+    PRUSASLICER_VERSION=$(echo "${RELEASE_JSON}" | jq -r '.tag_name'); \
   fi && \
-  # Fetch the specific browser download URL for the AppImage
-  APPIMAGE_URL=$(curl -sX GET "https://api.github.com/repos/gneiss15/PrusaSlicer.AppImage/releases/latest" \
-    | grep "browser_download_url.*AppImage" | cut -d '"' -f 4 | head -n 1) && \
+  DOWNLOAD_URL=$(echo "${RELEASE_JSON}" | jq -r 'first(.assets[].browser_download_url | select(test("x86_64.*\\.AppImage$")))') && \
+  cd /tmp && \
   curl -o \
-    /tmp/prusaslicer.AppImage -L \
-    "${APPIMAGE_URL}" && \
-  chmod +x /tmp/prusaslicer.AppImage && \
-  cd /app/prusaslicer && \
-  /tmp/prusaslicer.AppImage --appimage-extract && \
-  # Cleanup
+    /tmp/prusa.app -L \
+    "${DOWNLOAD_URL}" && \
+  chmod +x /tmp/prusa.app && \
+  ./prusa.app --appimage-extract && \
+  mv squashfs-root /opt/prusaslicer && \
+  localedef -i en_GB -f UTF-8 en_GB.UTF-8 && \
+  find /opt/prusaslicer -type d -exec chmod 755 {} + && \
+  printf "Linuxserver.io version: ${VERSION}\nBuild-date: ${BUILD_DATE}" > /build_version && \
   echo "**** cleanup ****" && \
-  rm /tmp/prusaslicer.AppImage && \
   apt-get autoclean && \
   rm -rf \
     /config/.cache \
